@@ -1,0 +1,62 @@
+# ============================================================
+# Qwen3.5-2B on R005 - Docker Compose (CUDA 版)
+#
+# 一键启动:
+#   docker compose -f docker-compose.qwen35.yaml up -d
+# ============================================================
+
+version: "3.8"
+
+services:
+  qwen35-2b:
+    image: qwen35-2b:r005
+    container_name: qwen35-2b-server
+    hostname: r005-qwen35
+    restart: unless-stopped
+
+    ports:
+      - "8080:8080"
+
+    volumes:
+      - ./models:/app/models:ro
+      - ./logs:/app/logs
+
+    command: >
+      -m /app/models/Qwen3.5-2B.Q4_K_M.gguf
+      --host 0.0.0.0
+      --port 8080
+      --ctx-size 8192
+      --threads 8
+      --threads-batch 8
+      --batch-size 512
+      --n-gpu-layers 99
+      --cache-type-k q8_0
+      --cache-type-v q8_0
+      --flash-attn on
+      --reasoning off
+      --verbose
+
+    environment:
+      - NVIDIA_VISIBLE_DEVICES=all
+
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+
+    healthcheck:
+      test: ["CMD", "curl", "-fs", "http://localhost:8080/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+
+    networks:
+      - qwen-net
+
+networks:
+  qwen-net:
+    driver: bridge

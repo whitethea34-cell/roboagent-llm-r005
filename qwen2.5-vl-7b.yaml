@@ -1,0 +1,38 @@
+# ============================================================
+# ERIQ 模型配置文件示例：Qwen2.5-VL-7B-Instruct
+# ============================================================
+# 将此文件放入 configs/ 目录，通过 run_from_config.py 加载
+#
+# 用法:
+#   python scripts/run_from_config.py --config configs/qwen2.5-vl-7b.yaml
+# ============================================================
+
+# 模型基本信息
+model_name: "Qwen2.5-VL-7B"
+model_id: "Qwen/Qwen2.5-VL-7B-Instruct"  # HuggingFace 模型路径
+local_path: null                         # 如果已下载到本地，填写本地绝对路径
+
+# 加载器配置
+loader:
+  class: "Qwen2_5_VLForConditionalGeneration"  # 主模型类名
+  processor_class: "AutoProcessor"             # 处理器类名
+  trust_remote_code: true                      # 国产模型通常需要
+  torch_dtype: "bfloat16"                       # 加载精度: float32 / bfloat16 / float16
+  device_map: "auto"                            # 自动分配层到 GPU
+  quantization: null                          # 量化: null / 8bit / 4bit
+
+# 推理配置
+inference:
+  max_new_tokens: 32        # 答案很短，32 token 足够
+  do_sample: false        # 评测用 greedy，保证可复现
+  temperature: null       # greedy 时不需要
+  top_p: null             # greedy 时不需要
+  system_prompt: |
+    You are a helpful assistant. Answer with only the choice letter (A/B/C/D/E/F)
+    for multiple choice questions, or only 'Yes'/'No' for binary questions.
+    Do not explain. One character only.
+
+# ERIQ 评测相关
+eriq:
+  supported_modalities: ["single_image", "multi_image", "interleaved"]
+  answer_extraction_mode: "first_letter"

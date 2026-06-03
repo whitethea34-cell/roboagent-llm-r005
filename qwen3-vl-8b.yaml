@@ -1,0 +1,30 @@
+# ============================================================
+# ERIQ 模型配置文件示例：Qwen3-VL-8B
+# ============================================================
+# Qwen3-VL 是最新的视觉语言模型，transformers 版本要求 >= 4.48
+# 如果报错 ImportError，请升级: pip install --upgrade transformers
+# ============================================================
+
+model_name: "Qwen3-VL-8B"
+model_id: "Qwen/Qwen3-VL-8B"
+local_path: null
+
+loader:
+  class: "Qwen3VLForConditionalGeneration"  # 注意类名与 Qwen2.5 不同
+  processor_class: "AutoProcessor"
+  trust_remote_code: true
+  torch_dtype: "bfloat16"
+  device_map: "auto"
+  quantization: null
+
+inference:
+  max_new_tokens: 32
+  do_sample: false
+  system_prompt: |
+    You are a helpful assistant. Answer with only the choice letter (A/B/C/D/E/F)
+    for multiple choice questions, or only 'Yes'/'No' for binary questions.
+    Do not explain. One character only.
+
+eriq:
+  supported_modalities: ["single_image", "multi_image", "interleaved"]
+  answer_extraction_mode: "first_letter"

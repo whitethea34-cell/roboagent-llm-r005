@@ -1,0 +1,29 @@
+# ============================================================
+# Vision Wrapper — file upload + OpenAI-compatible proxy
+#
+# 启动: docker compose -f docker-compose.wrapper.yaml up -d --build
+# 停止: docker compose -f docker-compose.wrapper.yaml down
+# ============================================================
+
+services:
+  wrapper:
+    build:
+      context: .
+      dockerfile: wrapper.Dockerfile
+    container_name: vision-wrapper
+    hostname: vision-wrapper
+    restart: unless-stopped
+
+    ports:
+      - "0.0.0.0:8088:8088"
+
+    environment:
+      - VLM_BASE_URL=http://host.docker.internal:8082
+      - VLM_TIMEOUT=180
+
+    healthcheck:
+      test: ["CMD", "curl", "-fs", "http://localhost:8088/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s

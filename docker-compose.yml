@@ -1,0 +1,66 @@
+# ============================================================
+# RoboAgent R005 - Docker Compose 配置 (CUDA 版)
+# 功能：llama.cpp 推理服务 (NVIDIA CUDA GPU 加速)
+#
+# 用法：
+#   docker compose up -d        # 后台启动
+#   docker compose logs -f      # 查看日志
+#   docker compose down         # 停止服务
+#   docker compose restart      # 重启服务
+# ============================================================
+
+version: "3.8"
+
+services:
+  roboagent:
+    image: roboagent:r005
+    container_name: roboagent-server
+    hostname: r005-llm
+    restart: unless-stopped
+
+    ports:
+      - "8080:8080"
+
+    volumes:
+      - ./models:/app/models:ro
+      - ./logs:/app/logs
+
+    command: >
+      -m /app/models/Qwen2.5-VL-3B-Instruct-Q4_K_M.gguf
+      --host 0.0.0.0
+      --port 8080
+      --ctx-size 4096
+      --threads 8
+      --threads-batch 8
+      --batch-size 512
+      --n-gpu-layers 99
+      --cache-type-k q8_0
+      --cache-type-v q8_0
+      --flash-attn on
+      --verbose
+
+    environment:
+      - NVIDIA_VISIBLE_DEVICES=all
+      - LLAMA_LOG_LEVEL=info
+
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+
+    healthcheck:
+      test: ["CMD", "curl", "-fs", "http://localhost:8080/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+
+    networks:
+      - roboagent-net
+
+networks:
+  roboagent-net:
+    driver: bridge

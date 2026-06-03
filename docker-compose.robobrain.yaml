@@ -1,0 +1,60 @@
+# ============================================================
+# RoboBrain2.0-7B on R005 - Docker Compose (CUDA 版)
+#
+# 一键启动:
+#   docker compose -f docker-compose.robobrain.yaml up -d
+# ============================================================
+
+services:
+  robobrain:
+    image: robobrain:r005
+    container_name: robobrain-server
+    hostname: r005-robobrain
+    restart: unless-stopped
+
+    ports:
+      - "8082:8082"
+
+    volumes:
+      - ./models:/app/models:ro
+      - ./logs:/app/logs
+
+    command: >
+      -m /app/models/BAAI_RoboBrain2.0-7B-Q4_K_M.gguf
+      --mmproj /app/models/mmproj-F16.gguf
+      --host 0.0.0.0
+      --port 8082
+      --ctx-size 8192
+      --threads 8
+      --threads-batch 8
+      --batch-size 512
+      --n-gpu-layers 99
+      --cache-type-k q8_0
+      --cache-type-v q8_0
+      --flash-attn on
+      --verbose
+
+    environment:
+      - NVIDIA_VISIBLE_DEVICES=all
+
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+
+    healthcheck:
+      test: ["CMD", "curl", "-fs", "http://localhost:8082/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 120s
+
+    networks:
+      - robobrain-net
+
+networks:
+  robobrain-net:
+    driver: bridge

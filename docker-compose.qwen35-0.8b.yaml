@@ -1,0 +1,61 @@
+# ============================================================
+# Qwen3.5-0.8B on R005 - Docker Compose (CUDA 版)
+#
+# 一键启动:
+#   docker compose -f docker-compose.qwen35-0.8b.yaml up -d
+# ============================================================
+
+version: "3.8"
+
+services:
+  qwen35-08b:
+    image: qwen35-2b:r005            # 复用同一镜像，仅模型文件不同
+    container_name: qwen35-08b-server
+    hostname: r005-qwen35-08b
+    restart: unless-stopped
+
+    ports:
+      - "8083:8083"
+
+    volumes:
+      - ./models:/app/models:ro
+      - ./logs:/app/logs
+
+    command: >
+      -m /app/models/Qwen3.5-0.8B-Q4_K_M.gguf
+      --host 0.0.0.0
+      --port 8083
+      --ctx-size 4096
+      --threads 4 --threads-batch 4
+      --batch-size 512 --ubatch-size 256
+      --n-gpu-layers 99
+      --cache-type-k q8_0 --cache-type-v q8_0
+      --flash-attn on
+      --reasoning off
+      --no-mmap --mlock --prio 1
+      --verbose
+
+    environment:
+      - NVIDIA_VISIBLE_DEVICES=all
+
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+
+    healthcheck:
+      test: ["CMD", "curl", "-fs", "http://localhost:8083/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+
+    networks:
+      - qwen08-net
+
+networks:
+  qwen08-net:
+    driver: bridge

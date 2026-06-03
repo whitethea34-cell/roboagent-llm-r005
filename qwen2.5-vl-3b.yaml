@@ -1,0 +1,29 @@
+# ============================================================
+# ERIQ 模型配置文件示例：Qwen2.5-VL-3B-Instruct
+# ============================================================
+# 3B 版本适合快速验证和调试，显存占用约 8-10GB
+# ============================================================
+
+model_name: "Qwen2.5-VL-3B"
+model_id: "Qwen/Qwen2.5-VL-3B-Instruct"
+local_path: null
+
+loader:
+  class: "Qwen2_5_VLForConditionalGeneration"
+  processor_class: "AutoProcessor"
+  trust_remote_code: true
+  torch_dtype: "bfloat16"
+  device_map: "auto"
+  quantization: null
+
+inference:
+  max_new_tokens: 32
+  do_sample: false
+  system_prompt: |
+    You are a helpful assistant. Answer with only the choice letter (A/B/C/D/E/F)
+    for multiple choice questions, or only 'Yes'/'No' for binary questions.
+    Do not explain. One character only.
+
+eriq:
+  supported_modalities: ["single_image", "multi_image", "interleaved"]
+  answer_extraction_mode: "first_letter"

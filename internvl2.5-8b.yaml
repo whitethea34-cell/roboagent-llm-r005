@@ -1,0 +1,30 @@
+# ============================================================
+# ERIQ 模型配置文件示例：InternVL2.5-8B
+# ============================================================
+# 注意：InternVL 使用 AutoModel 而非专用的 ForConditionalGeneration
+#       其 processor 是 AutoTokenizer 而非 AutoProcessor
+# ============================================================
+
+model_name: "InternVL2.5-8B"
+model_id: "OpenGVLab/InternVL2_5-8B"
+local_path: null
+
+loader:
+  class: "AutoModel"
+  processor_class: "AutoTokenizer"
+  trust_remote_code: true
+  torch_dtype: "bfloat16"
+  device_map: "auto"
+  quantization: null
+
+inference:
+  max_new_tokens: 32
+  do_sample: false
+  system_prompt: |
+    You are a helpful assistant. Answer with only the choice letter (A/B/C/D/E/F)
+    for multiple choice questions, or only 'Yes'/'No' for binary questions.
+    Do not explain. One character only.
+
+eriq:
+  supported_modalities: ["single_image", "multi_image"]
+  answer_extraction_mode: "first_letter"
